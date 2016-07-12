@@ -7,18 +7,14 @@ import java.util.regex.Pattern;
  */
 public class StringMessageMatcher {
 
-    public static MessageMatcher matchingString(String expected) {
-        return new MessageMatcher() {
+    public static MessageMatcher<String> matchingString(String expected) {
+        return new MessageMatcher<String>() {
 
             private Pattern pattern = Pattern.compile(expected);
 
             @Override
-            public boolean matches(Object message) {
-                if (message instanceof String) {
-                    return pattern.matcher((String) message).matches();
-                } else {
-                    return false;
-                }
+            public boolean matches(String message) {
+                return pattern.matcher(message).matches();
             }
 
             @Override

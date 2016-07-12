@@ -22,7 +22,7 @@ public class Actions {
      * @param timeout value in milliseconds
      * @return the action
      */
-    public static Action expectMessage(MessageMatcher messageMatcher, long timeout) {
+    public static Action expectMessage(MessageMatcher<?> messageMatcher, long timeout) {
         return new ExpectMessageAction(messageMatcher, timeout);
     }
 

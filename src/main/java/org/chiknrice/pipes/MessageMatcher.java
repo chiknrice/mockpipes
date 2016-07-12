@@ -6,8 +6,8 @@ package org.chiknrice.pipes;
  *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
-public interface MessageMatcher {
+public interface MessageMatcher<T> {
 
-    boolean matches(Object message);
+    boolean matches(T message);
 
 }

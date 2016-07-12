@@ -3,18 +3,18 @@ package org.chiknrice.pipes;
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
-public class InclusiveMessageMatcher implements MessageMatcher {
+public class InclusiveMessageMatcher<T> implements MessageMatcher<T> {
 
-    private final MessageMatcher[] matchers;
+    private final MessageMatcher<T>[] matchers;
 
-    public InclusiveMessageMatcher(MessageMatcher[] matchers) {
+    public InclusiveMessageMatcher(MessageMatcher<T>[] matchers) {
         this.matchers = matchers;
     }
 
     @Override
-    public boolean matches(Object message) {
+    public boolean matches(T message) {
         boolean matches = true;
-        for (MessageMatcher matcher : matchers) {
+        for (MessageMatcher<T> matcher : matchers) {
             if (!matcher.matches(message)) {
                 matches = false;
                 break;

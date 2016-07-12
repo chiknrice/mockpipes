@@ -5,10 +5,10 @@ package org.chiknrice.pipes;
  */
 public class ExpectMessageAction implements Action {
 
-    private final MessageMatcher messageMatcher;
+    private final MessageMatcher<?> messageMatcher;
     private final long timeout;
 
-    public ExpectMessageAction(MessageMatcher messageMatcher, long timeout) {
+    public ExpectMessageAction(MessageMatcher<?> messageMatcher, long timeout) {
         this.messageMatcher = messageMatcher;
         this.timeout = timeout;
     }
