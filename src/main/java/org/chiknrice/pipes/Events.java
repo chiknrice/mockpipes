@@ -11,7 +11,7 @@ public class Events {
 
     public static EventMatcher messageReceived(MessageMatcher messageMatcher) {
         EventMatcher e =  event -> {
-            if (event.getType().equals(Event.Type.MESSAGE_RECEIVED)) {
+            if (Event.Type.MESSAGE_RECEIVED.equals(event.getType())) {
                 return messageMatcher.matches(event.getMessage());
             } else {
                 return false;
@@ -22,7 +22,7 @@ public class Events {
 
     public static EventMatcher messageSent(MessageMatcher messageMatcher) {
         EventMatcher e = event -> {
-            if (event.getType().equals(Event.Type.MESSAGE_SENT)) {
+            if (Event.Type.MESSAGE_SENT.equals(event.getType())) {
                 return messageMatcher.matches(event.getMessage());
             } else {
                 return false;
@@ -32,7 +32,7 @@ public class Events {
     }
 
     public static EventMatcher connectionEstablished() {
-        EventMatcher e = event -> event.getType().equals(Event.Type.CONNECTION_ESTABLISHED);
+        EventMatcher e = event -> Event.Type.CONNECTION_ESTABLISHED.equals(event.getType());
         return e.withToString("Connection established");
     }
 
