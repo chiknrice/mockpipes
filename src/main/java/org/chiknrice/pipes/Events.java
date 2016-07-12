@@ -5,6 +5,10 @@ package org.chiknrice.pipes;
  */
 public class Events {
 
+    public static EventMatcher allEvents(EventMatcher... events) {
+        return new InclusiveEventMatcher(events);
+    }
+
     public static EventMatcher messageReceived(MessageMatcher messageMatcher) {
         EventMatcher e =  event -> {
             if (event.getType().equals(Event.Type.MESSAGE_RECEIVED)) {
@@ -32,8 +36,8 @@ public class Events {
         return e.withToString("Connection established");
     }
 
-    public static EventMatcher first(EventMatcher eventType) {
-        return new MatchCountingEventType(eventType) {
+    public static EventMatcher first(EventMatcher eventMatcher) {
+        return new MatchCountingEventType(eventMatcher) {
             @Override
             protected boolean matchOnOrdinal(int ordinal) {
                 return ordinal == 1;
@@ -41,8 +45,8 @@ public class Events {
         };
     }
 
-    public static EventMatcher everyOdd(EventMatcher eventType) {
-        return new MatchCountingEventType(eventType) {
+    public static EventMatcher everyOdd(EventMatcher eventMatcher) {
+        return new MatchCountingEventType(eventMatcher) {
             @Override
             protected boolean matchOnOrdinal(int ordinal) {
                 return ordinal % 2 == 1;
