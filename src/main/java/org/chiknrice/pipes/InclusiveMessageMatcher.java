@@ -3,11 +3,11 @@ package org.chiknrice.pipes;
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
-public class AndMessageMatcher implements MessageMatcher {
+public class InclusiveMessageMatcher implements MessageMatcher {
 
     private final MessageMatcher[] matchers;
 
-    public AndMessageMatcher(MessageMatcher[] matchers) {
+    public InclusiveMessageMatcher(MessageMatcher[] matchers) {
         this.matchers = matchers;
     }
 
