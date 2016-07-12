@@ -14,10 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -142,14 +139,14 @@ public class MockPipesServer extends IoHandlerAdapter implements MockPipes {
     }
 
     @Override
-    public AfterEventApi perform(Action action) {
+    public AfterEventApi perform(Action... actions) {
         return eventType -> {
-            List<Action> actions = actionMapping.get(eventType);
-            if (actions == null) {
-                actions = new ArrayList<>();
-                actionMapping.put(eventType, actions);
+            List<Action> mappedActions = actionMapping.get(eventType);
+            if (mappedActions == null) {
+                mappedActions = new ArrayList<>();
+                actionMapping.put(eventType, mappedActions);
             }
-            actions.add(action);
+            mappedActions.addAll(Arrays.asList(actions));
         };
     }
 

@@ -10,12 +10,12 @@ import java.util.List;
 public interface MockPipes {
 
     /**
-     * Perform a specified action after a particular event.
+     * Perform a set of actions after a particular event.
      *
-     * @param action
+     * @param actions
      * @return
      */
-    AfterEventApi perform(Action action);
+    AfterEventApi perform(Action... actions);
 
     /**
      * Wait for messages (sent or received) to match in the given timeout.  This would be useful way of waiting for a set of messages prior to start testing.

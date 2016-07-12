@@ -78,8 +78,8 @@ public class MockPipesBuilder {
         }
 
         @Override
-        public AfterEventApi perform(Action action) {
-            return server.perform(action);
+        public AfterEventApi perform(Action... actions) {
+            return server.perform(actions);
         }
 
         @Override
