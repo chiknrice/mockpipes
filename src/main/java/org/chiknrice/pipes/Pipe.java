@@ -23,14 +23,12 @@ public class Pipe {
 
     private final Map<MessageMatcher, CountDownLatch> expectedMessages;
     private final Set<Object> received;
-    private final Set<Object> sent;
     private final Set<Throwable> sendingExceptions;
 
     public Pipe(IoSession session) {
         this.session = session;
         this.expectedMessages = new ConcurrentHashMap<>();
         this.received = new ConcurrentHashSet<>();
-        this.sent = new ConcurrentHashSet<>();
         this.sendingExceptions = new ConcurrentHashSet<>();
     }
 
@@ -43,8 +41,6 @@ public class Pipe {
         session.write(message).addListener(result -> {
             WriteFuture write = (WriteFuture) result;
             if (write.isWritten()) {
-                sent.add(message);
-            } else {
                 Throwable e = write.getException();
                 if (e != null) {
                     sendingExceptions.add(e);
@@ -102,14 +98,6 @@ public class Pipe {
 
     public Map<MessageMatcher, CountDownLatch> getExpectedMessages() {
         return expectedMessages;
-    }
-
-    public Set<Object> getReceived() {
-        return received;
-    }
-
-    public Set<Object> getSent() {
-        return sent;
     }
 
 }

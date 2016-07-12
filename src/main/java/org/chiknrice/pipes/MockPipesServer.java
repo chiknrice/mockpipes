@@ -30,19 +30,21 @@ public class MockPipesServer extends IoHandlerAdapter implements MockPipes {
     private final int port;
     private final NioSocketAcceptor socketAcceptor;
     private final Map<EventMatcher, List<Action>> actionMapping;
-    private final Set<Pipe> pipes;
     private final ExecutorService eventProcessor;
     private final List<Throwable> errors;
-    private final Set<MessageMatcher> expectedMessages;
+    private final Set<Object> received;
+    private final Set<Object> sent;
+    private transient CountDownLatch messageEvent;
 
     public MockPipesServer(String host, int port, boolean enableLogging, ProtocolCodecFactory protocolCodecFactory) {
         this.host = host;
         this.port = port;
         actionMapping = new ConcurrentHashMap<>();
-        pipes = new ConcurrentHashSet<>();
         eventProcessor = Executors.newCachedThreadPool();
         errors = new ArrayList<>();
-        expectedMessages = new ConcurrentHashSet<>();
+        received = new ConcurrentHashSet<>();
+        sent = new ConcurrentHashSet<>();
+        messageEvent = new CountDownLatch(0);
 
         socketAcceptor = new NioSocketAcceptor();
         DefaultIoFilterChainBuilder filterChain = socketAcceptor.getFilterChain();
@@ -100,7 +102,6 @@ public class MockPipesServer extends IoHandlerAdapter implements MockPipes {
         LOG.debug("Session opened [{}]", session.getId());
         Pipe pipe = new Pipe(session);
         session.setAttribute(Pipe.class, pipe);
-        pipes.add(pipe);
         dispatch(new Event(Event.Type.CONNECTION_ESTABLISHED, pipe));
     }
 
@@ -108,7 +109,9 @@ public class MockPipesServer extends IoHandlerAdapter implements MockPipes {
     public void sessionClosed(IoSession session) throws Exception {
         LOG.debug("Session closed [{}]", session.getId());
         Pipe pipe = (Pipe) session.getAttribute(Pipe.class);
-        errors.addAll(pipe.getExpectedMessages().keySet().stream().map(messageMatcher -> new RuntimeException("Expected messages not received: " + messageMatcher.toString())).collect(Collectors.toList()));
+        errors.addAll(pipe.getExpectedMessages().keySet().stream()
+                .map(messageMatcher -> new RuntimeException("Expected messages not received: " + messageMatcher.toString()))
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -118,8 +121,10 @@ public class MockPipesServer extends IoHandlerAdapter implements MockPipes {
         while (pipe == null) {
             pipe = (Pipe) session.getAttribute(Pipe.class);
         }
-        pipe.onMessageReceived(message);
+        received.add(message);
+        messageEvent.countDown();
         dispatch(new Event(Event.Type.MESSAGE_RECEIVED, pipe, message));
+        pipe.onMessageReceived(message);
     }
 
     @Override
@@ -129,6 +134,8 @@ public class MockPipesServer extends IoHandlerAdapter implements MockPipes {
         while (pipe == null) {
             pipe = (Pipe) session.getAttribute(Pipe.class);
         }
+        sent.add(message);
+        messageEvent.countDown();
         dispatch(new Event(Event.Type.MESSAGE_SENT, pipe, message));
     }
 
@@ -154,31 +161,34 @@ public class MockPipesServer extends IoHandlerAdapter implements MockPipes {
     public boolean waitForMessages(long timeout, MessageMatcher... messageMatchers) {
         long start = System.currentTimeMillis();
         Map<MessageMatcher, CountDownLatch> expectedMessages = new ConcurrentHashMap<>();
-        for (MessageMatcher criteria : messageMatchers) {
-            expectedMessages.put(criteria, new CountDownLatch(1));
+        for (MessageMatcher matcher : messageMatchers) {
+            expectedMessages.put(matcher, new CountDownLatch(1));
         }
         AtomicBoolean done = new AtomicBoolean(false);
         eventProcessor.execute(() -> {
             while (expectedMessages.size() > 0 || !done.get()) {
-                if (pipes.size() > 0)
-                    pipes.forEach(pipe -> {
-                        pipe.getReceived().forEach(message -> expectedMessages.entrySet().removeIf(entry -> {
-                            if (entry.getKey().matches(message)) {
-                                entry.getValue().countDown();
-                                return true;
-                            } else {
-                                return false;
-                            }
-                        }));
-                        pipe.getSent().forEach(message -> expectedMessages.entrySet().removeIf(entry -> {
-                            if (entry.getKey().matches(message)) {
-                                entry.getValue().countDown();
-                                return true;
-                            } else {
-                                return false;
-                            }
-                        }));
-                    });
+                received.forEach(message -> expectedMessages.entrySet().removeIf(entry -> {
+                    if (entry.getKey().matches(message)) {
+                        entry.getValue().countDown();
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }));
+                sent.forEach(message -> expectedMessages.entrySet().removeIf(entry -> {
+                    if (entry.getKey().matches(message)) {
+                        entry.getValue().countDown();
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }));
+                messageEvent = new CountDownLatch(1);
+                try {
+                    messageEvent.await(500, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    break;
+                }
             }
         });
 
@@ -200,15 +210,13 @@ public class MockPipesServer extends IoHandlerAdapter implements MockPipes {
 
     @Override
     public List<Object> getReceived() {
-        List<Object> received = new ArrayList<>();
-        pipes.forEach(pipe -> received.addAll(pipe.getReceived()));
+        List<Object> received = new ArrayList<>(this.received);
         return received;
     }
 
     @Override
     public List<Object> getSent() {
-        List<Object> sent = new ArrayList<>();
-        pipes.forEach(pipe -> sent.addAll(pipe.getSent()));
+        List<Object> sent = new ArrayList<>(this.sent);
         return sent;
     }
 
