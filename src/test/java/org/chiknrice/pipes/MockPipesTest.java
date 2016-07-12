@@ -28,9 +28,9 @@ public class MockPipesTest {
 
     @Before
     public void setupServer() {
-        server.du(expectMessage(matchingString("Lgoin"), 100)).on(connectionEstablished());
-        server.du(sendMessage(objectMessage("Login"))).on(connectionEstablished());
-        server.du(sendMessage(objectMessage("Nice!"))).on(messageReceived(matchingString("Ia.*")));
+        server.perform(expectMessage(matchingString("Lgoin"), 100)).after(connectionEstablished());
+        server.perform(sendMessage(objectMessage("Login"))).after(connectionEstablished());
+        server.perform(sendMessage(objectMessage("Nice!"))).after(messageReceived(matchingString("Ia.*")));
     }
 
     @Test
