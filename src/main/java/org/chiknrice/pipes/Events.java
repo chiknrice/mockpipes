@@ -5,10 +5,6 @@ package org.chiknrice.pipes;
  */
 public class Events {
 
-    public static EventMatcher allEvents(EventMatcher... events) {
-        return new InclusiveEventMatcher(events);
-    }
-
     public static EventMatcher messageReceived(MessageMatcher messageMatcher) {
         EventMatcher e =  event -> {
             if (Event.Type.MESSAGE_RECEIVED.equals(event.getType())) {

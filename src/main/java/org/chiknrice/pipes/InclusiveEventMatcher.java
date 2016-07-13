@@ -14,28 +14,29 @@ import java.util.WeakHashMap;
  */
 public class InclusiveEventMatcher implements EventMatcher {
 
-    private final EventMatcher[] matchers;
+    private final Set<EventMatcher> matchers;
 
     private final WeakHashMap<Pipe, Set<EventMatcher>> pipeScope;
 
-    public InclusiveEventMatcher(EventMatcher[] matchers) {
-        if (matchers.length == 0) {
-            throw new IllegalArgumentException(this.getClass().getSimpleName() + " requires at least 1 event matcher");
-        }
-        this.matchers = matchers;
+    public InclusiveEventMatcher(EventMatcher matcher) {
+        this.matchers = new ConcurrentHashSet<>();
+        this.matchers.add(matcher);
         this.pipeScope = new WeakHashMap<>();
+    }
+
+    public void add(EventMatcher matcher) {
+        matchers.add(matcher);
     }
 
     @Override
     public boolean matches(Event event) {
-        Set<EventMatcher> eventMatchers = pipeScope.get(event.getSource());
-        if (eventMatchers == null) {
-            eventMatchers = new ConcurrentHashSet<>();
-            Collections.addAll(eventMatchers, matchers);
-            pipeScope.put(event.getSource(), eventMatchers);
+        Set<EventMatcher> pipeScopeEventMatchers = pipeScope.get(event.getSource());
+        if (pipeScopeEventMatchers == null) {
+            pipeScopeEventMatchers = new ConcurrentHashSet<>(matchers);
+            pipeScope.put(event.getSource(), pipeScopeEventMatchers);
         }
-        boolean matched = eventMatchers.removeIf(matcher -> matcher.matches(event));
-        return matched && eventMatchers.size() == 0;
+        boolean matched = pipeScopeEventMatchers.removeIf(matcher -> matcher.matches(event));
+        return matched && pipeScopeEventMatchers.size() == 0;
     }
 
 }

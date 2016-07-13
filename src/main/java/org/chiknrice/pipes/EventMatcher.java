@@ -13,7 +13,7 @@ public interface EventMatcher {
     boolean matches(Event event);
 
     default EventMatcher withToString(final String toString) {
-        return new EventMatcher(){
+        return new EventMatcher() {
 
             @Override
             public boolean matches(Event event) {
@@ -26,6 +26,17 @@ public interface EventMatcher {
             }
 
         };
+    }
+
+    default EventMatcher and(EventMatcher eventMatcher) {
+        if (this instanceof InclusiveEventMatcher) {
+            ((InclusiveEventMatcher) this).add(eventMatcher);
+            return this;
+        } else {
+            InclusiveEventMatcher inclusiveEventMatcher = new InclusiveEventMatcher(this);
+            inclusiveEventMatcher.add(eventMatcher);
+            return inclusiveEventMatcher;
+        }
     }
 
 }

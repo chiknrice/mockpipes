@@ -10,4 +10,15 @@ public interface MessageMatcher<T> {
 
     boolean matches(T message);
 
+    default MessageMatcher<T> and(MessageMatcher<T> matcher) {
+        if (this instanceof InclusiveEventMatcher) {
+            ((InclusiveMessageMatcher<T>) this).add(matcher);
+            return this;
+        } else {
+            InclusiveMessageMatcher inclusiveMessageMatcher = new InclusiveMessageMatcher<>(this);
+            inclusiveMessageMatcher.add(matcher);
+            return inclusiveMessageMatcher;
+        }
+    }
+
 }
