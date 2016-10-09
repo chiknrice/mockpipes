@@ -1,6 +1,8 @@
 package org.chiknrice.pipes;
 
 /**
+ * Class {@code Actions} is a factory of different {@code Action} instances.
+ *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
 public class Actions {
@@ -12,7 +14,7 @@ public class Actions {
      * @return the action
      */
     public static Action sendMessage(MessageBuilder messageBuilder) {
-        return new SendMessageAction(messageBuilder);
+        return event -> event.getSource().send(messageBuilder.build(event));
     }
 
     /**
@@ -23,14 +25,14 @@ public class Actions {
      * @return the action
      */
     public static Action expectMessage(MessageMatcher<?> messageMatcher, long timeout) {
-        return new ExpectMessageAction(messageMatcher, timeout);
+        return event -> event.getSource().expect(messageMatcher, timeout);
     }
 
     /**
      * An action which raises an exception
      *
      * @param exception the exception to be thrown
-     * @return
+     * @return the action
      */
     public static Action raise(RuntimeException exception) {
         return event -> {
