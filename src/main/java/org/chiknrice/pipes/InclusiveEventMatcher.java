@@ -2,13 +2,12 @@ package org.chiknrice.pipes;
 
 import org.apache.mina.util.ConcurrentHashSet;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
 /**
- * An event matcher which matches once all included matchers are satisfied.  This matcher only returns true once for a
- * specific pipe.
+ * The {@code InclusiveEventMatcher} class consolidates one or more {@code EventMatcher}s and evaluates as matched once
+ * all included {@code EventMatcher}s are satisfied.  This matcher only returns true once for a specific {@code Pipe}.
  *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */

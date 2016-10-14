@@ -3,7 +3,8 @@ package org.chiknrice.pipes;
 import java.util.List;
 
 /**
- * An API defining the possible operations that can be done by mock pipes
+ * The {@code MockPipes} interface provides the core APIs of a mock socket server.  The {@code MockPipes} is capable of
+ * performing one or more {@code Action}s in reaction to a particular {@code Event}.  The API provi
  *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
@@ -18,11 +19,13 @@ public interface MockPipes {
     AfterEventApi perform(Action... actions);
 
     /**
-     * Wait for messages (sent or received) to match in the given timeout.  This would be useful way of waiting for a set of messages prior to start testing.
+     * Wait for messages (sent or received) to match in the given timeout.  This would be useful way of waiting for a
+     * set of messages prior to start testing.
      *
      * @param timeout
      * @param messageMatchers
-     * @return {@code true} if successful, or {@code false} if the specified waiting time elapses before messages were sent/received
+     * @return {@code true} if successful, or {@code false} if the specified waiting time elapses before messages were
+     * sent/received
      */
     boolean waitForMessages(long timeout, MessageMatcher... messageMatchers);
 

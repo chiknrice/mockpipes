@@ -8,10 +8,19 @@ import org.junit.runners.model.Statement;
 import java.util.List;
 
 /**
+ * The {@code MockPipesBuilder} class is a builder for a {@code MockPipesServer} or a {@code MockPipesRule} which
+ * provides methods to configure the {@code MockPipes}.
+ *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
 public class MockPipesBuilder {
 
+    /**
+     * The minimal configuration of a {@code MockPipes} is the port.
+     *
+     * @param port
+     * @return
+     */
     public static MockPipesBuilder configureWithPort(int port) {
         return new MockPipesBuilder(port);
     }
@@ -25,11 +34,23 @@ public class MockPipesBuilder {
         this.port = port;
     }
 
+    /**
+     * Sets the hostname or an ip where the {@code MockPipes} would listen to.
+     *
+     * @param host the hostname or ip of {@code MockPipes}
+     * @return the builder
+     */
     public MockPipesBuilder host(String host) {
         this.host = host;
         return this;
     }
 
+    /**
+     * TODO make this the minimal required config and use ProtocolCodecFactory instead
+     *
+     * @param codec
+     * @return
+     */
     public MockPipesBuilder codec(MockPipesCodec<?> codec) {
         this.codec = codec;
         return this;

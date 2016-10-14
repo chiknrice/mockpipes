@@ -1,14 +1,17 @@
 package org.chiknrice.pipes;
 
 /**
- * An API to encapsulate the logic on when an event should trigger an action.
+ * The {@code EventMatcher} interface provides the API to encapsulate the logic of matching a particular {@code Event}.
  *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
 public interface EventMatcher {
 
     /**
-     * @param event
+     * Tries to match the provided {@code Event} using the underlying logic.
+     *
+     * @param event the {@code Event} to match
+     * @return {@code true} if the {@code Event} matches, else {@code false}
      */
     boolean matches(Event event);
 

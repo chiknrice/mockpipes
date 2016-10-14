@@ -5,7 +5,13 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.*;
 
 /**
+ * The {@code MockPipesCodec} class is a convenience class which provides APIs to encode and decode between a message of
+ * type {@code <T>} and byte[].
+ *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
+ * @see org.apache.mina.filter.codec.ProtocolCodecFactory
+ * @see ProtocolEncoder
+ * @see ProtocolDecoder
  */
 public abstract class MockPipesCodec<T> implements ProtocolCodecFactory {
 
@@ -28,12 +34,12 @@ public abstract class MockPipesCodec<T> implements ProtocolCodecFactory {
     }
 
     @Override
-    public ProtocolEncoder getEncoder(IoSession session) throws Exception {
+    public final ProtocolEncoder getEncoder(IoSession session) throws Exception {
         return encoder;
     }
 
     @Override
-    public ProtocolDecoder getDecoder(IoSession session) throws Exception {
+    public final ProtocolDecoder getDecoder(IoSession session) throws Exception {
         return decoder;
     }
 

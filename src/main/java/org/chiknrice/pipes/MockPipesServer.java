@@ -102,7 +102,7 @@ public class MockPipesServer extends IoHandlerAdapter implements MockPipes {
         LOG.debug("Session opened [{}]", session.getId());
         Pipe pipe = new Pipe(session);
         session.setAttribute(Pipe.class, pipe);
-        dispatch(new Event(Event.Type.CONNECTION_ESTABLISHED, pipe));
+        dispatch(new Event(Event.Type.CONNECTION_ESTABLISHED, pipe, null));
     }
 
     @Override

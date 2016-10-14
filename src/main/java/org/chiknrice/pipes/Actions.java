@@ -1,7 +1,7 @@
 package org.chiknrice.pipes;
 
 /**
- * Class {@code Actions} is a factory of different {@code Action} instances.
+ * The {@code Actions} class is a factory of different {@code Action} instances.
  *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */

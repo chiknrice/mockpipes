@@ -5,6 +5,10 @@ import org.apache.mina.util.ConcurrentHashSet;
 import java.util.Set;
 
 /**
+ * The {@code InclusiveMessageMatcher} class consolidates one or more {@code MessageMatcher}s and evaluates as matched
+ * once all included {@code MessageMatcher}s are satisfied.  This matcher only returns true once for a specific {@code
+ * Pipe}.
+ *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
 public class InclusiveMessageMatcher<T> implements MessageMatcher<T> {
