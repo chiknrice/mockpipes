@@ -8,7 +8,36 @@
     <artifactId>mockpipes</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <name>mockpipes</name>
+    <description>MockPipes is a framework for mocking socket servers</description>
+    <url>https://github.com/chiknrice/mockpipes</url>
+
+    <licenses>
+        <license>
+            <name>GPL v3.0</name>
+            <url>http://www.gnu.org/licenses/gpl.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>chiknrice</id>
+            <name>Ian Bondoc</name>
+            <email>chiknrice@gmail.com</email>
+            <url>https://github.com/chiknrice</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/chiknrice/mockpipes</url>
+        <connection>scm:git:git@github.com:chiknrice/mockpipes.git</connection>
+        <developerConnection>scm:git:git@github.com:chiknrice/mockpipes.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
         <mina.version>2.0.13</mina.version>
         <slf4j.version>1.7.21</slf4j.version>
@@ -44,6 +73,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.0</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                     <source>${java.version}</source>
@@ -52,5 +82,34 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- Profile for building with jacoco (and possibly pmd) to publish results to coveralls -->
+        <profile>
+            <id>snapshot.build</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>0.7.7.201606060606</version>
+                        <executions>
+                            <execution>
+                                <id>prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.eluder.coveralls</groupId>
+                        <artifactId>coveralls-maven-plugin</artifactId>
+                        <version>4.3.0</version>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
