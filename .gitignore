@@ -1,7 +1,13 @@
-target/
+# gradle temp
+.gradle
+# gradle build
+build/
+# intellij config
+.idea
+*.iml
+# eclipse config
 .classpath
 .settings/
 .project
-.idea/
-*.iml
+# mac files
 .DS_Store

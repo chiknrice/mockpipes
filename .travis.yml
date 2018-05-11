@@ -9,10 +9,5 @@ branches:
       # Build tags that match this regex in addition to building the master branch.
     - /^v[0-9]+\.[0-9]+/
 
-script:
-  # Build with jacoco coverage
-  - mvn test jacoco:report -P snapshot.build
-
 after_success:
-  # If successful, submit converalls report
-  - mvn coveralls:report -P snapshot.build
+  - test "${TRAVIS_JDK_VERSION}" == "oraclejdk8" && ./gradlew jacocoTestReport coveralls
