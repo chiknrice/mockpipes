@@ -1,14 +1,18 @@
 package org.chiknrice.pipes;
 
+import org.chiknrice.pipes.api.MockPipes;
+import org.chiknrice.pipes.api.MockPipesClassRule;
+import org.chiknrice.pipes.api.MockPipesCodec;
+import org.chiknrice.pipes.api.MockPipesMethodRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
 
-import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * The {@code MockPipesBuilder} class is a builder for a {@code MockPipesServer} or a {@code MockPipesRule} which
+ * The {@code MockPipesBuilder} class is a builder for a {@code MockPipesServer} or a {@code MockPipesClassRule} which
  * provides methods to configure the {@code MockPipes}.
  *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
@@ -21,13 +25,12 @@ public class MockPipesBuilder {
      * @param port
      * @return
      */
-    public static MockPipesBuilder configureWithPort(int port) {
+    public static MockPipesBuilder withPort(int port) {
         return new MockPipesBuilder(port);
     }
 
-    private int port = 9999;
+    private final int port;
     private String host = "localhost";
-    private MockPipesCodec<?> codec;
     private boolean enableLogging = false;
 
     private MockPipesBuilder(int port) {
@@ -45,77 +48,87 @@ public class MockPipesBuilder {
         return this;
     }
 
-    /**
-     * TODO make this the minimal required config and use ProtocolCodecFactory instead
-     *
-     * @param codec
-     * @return
-     */
-    public MockPipesBuilder codec(MockPipesCodec<?> codec) {
-        this.codec = codec;
-        return this;
-    }
-
     public MockPipesBuilder enableLogging() {
         this.enableLogging = true;
         return this;
     }
 
-    public MockPipesServer buildServer() {
-        return new MockPipesServer(host, port, enableLogging, codec);
+    public <I, O> MockPipes<I, O> buildServer(MockPipesCodec<I, O> codec) {
+        return new MockPipesServer<>(host, port, enableLogging, codec);
     }
 
-    public MockPipesRule buildRule() {
-        return new MockPipesRuleImpl(buildServer());
+    public <I, O> MockPipesClassRule<I, O> buildClassRule(MockPipesCodec<I, O> codec) {
+        return new MockPipesClassRuleImpl(host, port, enableLogging, codec);
     }
 
-    private static class MockPipesRuleImpl implements MockPipesRule {
+    public <I, O> MockPipesMethodRule<I, O> buildMethodRule(MockPipesCodec<I, O> codec) {
+        return new MockPipesMethodRuleImpl(host, port, enableLogging, codec);
+    }
 
-        final MockPipesServer server;
+    private static class MockPipesClassRuleImpl<I, O> extends MockPipesServer<I, O> implements MockPipesClassRule<I, O> {
 
-        MockPipesRuleImpl(MockPipesServer server) {
-            this.server = server;
+        MockPipesClassRuleImpl(String host, int port, boolean enableLogging, MockPipesCodec<I, O> codec) {
+            super(host, port, enableLogging, codec);
         }
 
         @Override
-        public Statement apply(final Statement base, Description description) {
-            return apply(base, null, null);
-        }
-
-        @Override
-        public Statement apply(final Statement base, FrameworkMethod method, Object target) {
+        public Statement apply(Statement base, Description description) {
             return new Statement() {
                 @Override
                 public void evaluate() throws Throwable {
                     try {
-                        server.activate();
+                        MockPipesClassRuleImpl.super.activate();
                         base.evaluate();
                     } finally {
-                        server.destroy();
-                        MultipleFailureException.assertEmpty(server.getErrors());
+                        MockPipesClassRuleImpl.super.destroy();
                     }
                 }
             };
         }
 
         @Override
-        public AfterEventApi perform(Action... actions) {
-            return server.perform(actions);
+        public synchronized void activate() {
+            throw new UnsupportedOperationException("activate not supported if used as a junit rule");
         }
 
         @Override
-        public boolean waitForMessages(long timeout, MessageMatcher... messageMatchers) {
-            return server.waitForMessages(timeout, messageMatchers);
+        public synchronized void destroy() {
+            throw new UnsupportedOperationException("destroy not supported if used as a junit rule");
+        }
+
+    }
+
+    private static class MockPipesMethodRuleImpl<I, O> extends MockPipesServer<I, O> implements MockPipesMethodRule<I, O> {
+
+        public MockPipesMethodRuleImpl(String host, int port, boolean enableLogging, MockPipesCodec<I, O> mockPipesCodec) {
+            super(host, port, enableLogging, mockPipesCodec);
         }
 
         @Override
-        public List<Object> getReceived() {
-            return server.getReceived();
+        public Statement apply(Statement base, FrameworkMethod method, Object target) {
+            return new Statement() {
+                @Override
+                public void evaluate() throws Throwable {
+                    try {
+                        MockPipesMethodRuleImpl.super.activate();
+                        base.evaluate();
+                    } finally {
+                        MockPipesMethodRuleImpl.super.destroy();
+                        MultipleFailureException.assertEmpty(getExceptions()
+                                .stream().map(Throwable.class::cast).collect(Collectors.toList()));
+                    }
+                }
+            };
         }
 
         @Override
-        public List<Object> getSent() {
-            return server.getSent();
+        public synchronized void activate() {
+            throw new UnsupportedOperationException("activate not supported if used as a junit rule");
+        }
+
+        @Override
+        public synchronized void destroy() {
+            throw new UnsupportedOperationException("destroy not supported if used as a junit rule");
         }
 
     }

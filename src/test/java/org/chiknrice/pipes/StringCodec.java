@@ -3,13 +3,15 @@ package org.chiknrice.pipes;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.apache.mina.filter.codec.ProtocolEncoderOutput;
+import org.chiknrice.pipes.api.MockPipesCodec;
 
 import java.nio.charset.StandardCharsets;
+import java.util.function.Consumer;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
-public class StringCodec extends MockPipesCodec<String> {
+public class StringCodec implements MockPipesCodec<String, String> {
 
     static final String EOL;
     static final byte EOL_BYTE;
@@ -20,19 +22,18 @@ public class StringCodec extends MockPipesCodec<String> {
     }
 
     @Override
-    protected void encode(String message, ProtocolEncoderOutput out) {
-        out.write(IoBuffer.wrap(message.concat(EOL).getBytes()));
+    public byte[] encode(String message) {
+        return message.concat(EOL).getBytes();
     }
 
     @Override
-    protected boolean decode(IoBuffer in, ProtocolDecoderOutput out) {
+    public String tryToDecode(IoBuffer in) {
         int eolIndex = in.indexOf(EOL_BYTE);
         if (eolIndex != -1) {
             byte[] bytes = new byte[eolIndex - in.position() + 1];
             in.get(bytes);
-            out.write(new String(bytes, StandardCharsets.ISO_8859_1).trim());
-            return in.hasRemaining();
+            return new String(bytes, StandardCharsets.ISO_8859_1).trim();
         }
-        return true;
+        return null;
     }
 }

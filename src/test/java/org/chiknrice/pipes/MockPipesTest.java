@@ -1,5 +1,6 @@
 package org.chiknrice.pipes;
 
+import org.chiknrice.pipes.api.MockPipesMethodRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -10,13 +11,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-import static org.chiknrice.pipes.Actions.expectMessage;
-import static org.chiknrice.pipes.Actions.sendMessage;
-import static org.chiknrice.pipes.Events.connectionEstablished;
-import static org.chiknrice.pipes.Events.messageReceived;
-import static org.chiknrice.pipes.Builders.objectMessage;
-import static org.chiknrice.pipes.StringMessageMatcher.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
@@ -24,29 +23,37 @@ import static org.chiknrice.pipes.StringMessageMatcher.*;
 public class MockPipesTest {
 
     @Rule
-    public MockPipesRule server = MockPipesBuilder.configureWithPort(9999).codec(new StringCodec()).buildRule();
+    public MockPipesMethodRule<String, String> server = MockPipesBuilder.withPort(9999).buildMethodRule(new StringCodec());
+
+    private CountDownLatch go;
 
     @Before
     public void setupServer() {
-        server.perform(expectMessage(matchingString("Lgoin"), 100)).after(connectionEstablished());
-        server.perform(sendMessage(objectMessage("Login"))).after(connectionEstablished());
-        server.perform(sendMessage(objectMessage("Nice!"))).after(messageReceived(matchingString("Ia.*")));
+        go = new CountDownLatch(2);
+        server.afterConnected().expect(Message.of("Lgoin"), 2).then().send(Message.value("Login"));
+        server.afterFirst().received(Message.matchingRegex("Ia.*")).send(Message.value("Nice!"));
+        server.afterFirst().sent(Message.of("Login")).perform(e -> go.countDown());
+        server.afterFirst().received(Message.of("Lgoin")).perform(e -> go.countDown());
+        //server.afterFirst().received(Message.of("Hello")).raise(RuntimeException::new);
     }
 
     @Test
-    public void testLogging() throws IOException {
+    public void simpleConversation() throws IOException, InterruptedException {
         try (Socket s = new Socket("localhost", 9999)) {
+            s.setSoTimeout(3000);
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(s.getInputStream()))) {
                 OutputStream out = s.getOutputStream();
                 out.write("Lgoin\n".getBytes(StandardCharsets.ISO_8859_1));
                 out.flush();
-                if (!server.waitForMessages(1000, matchingString("Login"), matchingString("Lgoin"))) {
-                    throw new RuntimeException("Not satisifed!!!");
+                if (!go.await(3000, TimeUnit.MILLISECONDS)) {
+                    throw new RuntimeException("Not satisfied");
                 }
-                System.out.println("Read: " + reader.readLine());
+                String reply = reader.readLine();
+                assertThat(reply, is("Login"));
                 out.write("Hello\nIan\n".getBytes(StandardCharsets.ISO_8859_1));
                 out.flush();
-                System.out.println("Read: " + reader.readLine());
+                reply = reader.readLine();
+                assertThat(reply, is("Nice!"));
             }
         }
     }
