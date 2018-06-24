@@ -11,8 +11,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -38,23 +41,22 @@ public class MockPipesTest {
     }
 
     @Test
-    public void simpleConversation() throws IOException, InterruptedException {
-        try (Socket s = new Socket("localhost", 9999)) {
-            s.setSoTimeout(3000);
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(s.getInputStream()))) {
-                OutputStream out = s.getOutputStream();
-                out.write("Lgoin\n".getBytes(StandardCharsets.ISO_8859_1));
-                out.flush();
-                if (!go.await(3000, TimeUnit.MILLISECONDS)) {
-                    throw new RuntimeException("Not satisfied");
-                }
-                String reply = reader.readLine();
-                assertThat(reply, is("Login"));
-                out.write("Hello\nIan\n".getBytes(StandardCharsets.ISO_8859_1));
-                out.flush();
-                reply = reader.readLine();
-                assertThat(reply, is("Nice!"));
+    public void simpleConversation() throws InterruptedException {
+        BlockingQueue<String> responses = new ArrayBlockingQueue<>(5);
+        Consumer<String> responseConsumer = response -> {
+            try {
+                responses.put(response);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
+        };
+        try (MockPipesClient<String, String> client = new MockPipesClient<>("localhost", 9999, new StringCodec(), responseConsumer)) {
+            client.send("Lgoin");
+            String reply = responses.poll(3000, TimeUnit.MILLISECONDS);
+            assertThat(reply, is("Login"));
+            client.send("Hello\nIan");
+            reply = responses.poll(3000, TimeUnit.MILLISECONDS);
+            assertThat(reply, is("Nice!"));
         }
     }
 

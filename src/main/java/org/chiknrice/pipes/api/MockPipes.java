@@ -35,23 +35,46 @@ public interface MockPipes<I, O> {
     List<I> getReceived();
 
     /**
-     * Get all the messages sent by {@link MockPipes}
+     * Get all the messages received by {@link MockPipes} from a specific client.
+     *
+     * @param connectionId
+     * @return
+     */
+    List<I> getReceived(long connectionId);
+
+    /**
+     * Get all the messages sent by {@link MockPipes}.
      *
      * @return the list
      */
     List<O> getSent();
 
     /**
-     * Gets all the exceptions raised by {@link MockPipes} including caused by {@code raise} or {@code expect} actions
+     * Get all the message sent by {@link MockPipes} to a specific client.
+     * @param connectionId
+     * @return
+     */
+    List<O> getSent(long connectionId);
+
+    /**
+     * Gets all the exceptions raised by {@link MockPipes} including caused by {@code raise} or {@code expect} actions.
      *
      * @return the list
      */
     List<Exception> getExceptions();
 
-
+    /**
+     * TODO:
+     */
     void activate();
 
+    /**
+     * TODO:
+     */
     void reset();
 
+    /**
+     * TODO:
+     */
     void destroy();
 }

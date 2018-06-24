@@ -2,28 +2,45 @@
 
 # Overview
 
-***mockpipes*** is a framework for mocking socket servers.  It provides a facility to define behavior of socket servers in reaction to events.  The framework is designed to promote fluent APIs.
+***mockpipes*** is a framework for mocking socket servers.  It provides fluent APIs to configure behavior.  A behavior
+is a pair of event and action.  The server would listen to the event and execute the associated action if the event matches.
+
+The event can be a connected event, a single (or set of) received message(s), a single (or set of) sent message(s).  The
+action can be a single action, a list of the same action, and optionally followed by different type of actions.
+
+Behaviors can be persistent or one-off.  One-off behavior would only match the configured event once, in contrast the
+persistent behavior would fire the associated actions every time the event/events matches.
+
+Each connection established with MockPipes creates a single session.  Each session is configured with its local copy of
+the behavior defined for the server.  This means that given there are two clients connected to MockPipes (client1 and
+client2), and if a one-off behavior (e.g. a string message matching "a" replies with "b") has been configured, then even
+if the behavior has already been matched for client1, it would still be matched for client2 the first time client2 sends
+message "a". 
+
+Along with the behavior the received messages, sent messages, and exceptions related to the session are stored for the
+specific session/connection.  These are accessible from the server using the connectionId.  The connectionId can be
+captured by defining a behavior which listens to connected event.
+
+## Architecture
+
+The server is implemented using Apache MINA and does not use an executor filter, this means each connection has its own
+IoProcessor thread which also performs encoding and decoding.  However, an ExecutorService is used to perform all event
+matching and actions, but the tasks for the same session/connection are processed in sequence (more like synchronized
+but not).  This means that there are no synchronization in any code which performs the behavior defined for MockPipes -
+which makes the server very fast.  
 
 # API
 
 ## MockPipes
 
 The API which provides methods to:
- - configure behavior socket server behavior
+ - configure socket server behavior
  - getting all the received messages grouped by connection IDs
  - getting all the sent message grouped by connection IDs 
- - getting all the exceptions thrown while processing messages grouped by connection IDs
+ - getting all the exceptions thrown within the server (including triggered RaiseExceptionActions)
  - starting the server
  - stopping/destroying the server
- - resetting server state
-
-The APIs for configuring the behavior of the socket server are fluent APIs.  Each behavior configuration is composed of an event/events and an action or chain of actions.
-
-The server would listen to the events and execute the actions if the event/events matches.
-
-The behavior can be persistent or one-off.  One-off configuration would only match the configured event once, in contrast the persistent behavior would fire the actions associated to it every time the event matches.
-
-The whole configuration is applied to every connection created to the server, so a one off configuration (e.g. send a message once the event 'connection established' is encountered) would be fired for every connection.
+ - resetting server state (which clears behavior and collected messages and exceptions)
 
 ## Events
 
@@ -54,3 +71,5 @@ Collection of message-related actions can also be chained to another type of act
 ## Usage
 
 The framework provides a ***Builder*** to create a MockPipes, MockPipesClassRule, or a MockPipesMethodRule.
+
+TODO

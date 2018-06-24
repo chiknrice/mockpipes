@@ -1,5 +1,7 @@
 package org.chiknrice.pipes.api;
 
+import java.util.Set;
+
 /**
  * The {@code CustomAction} interface defines the API for performing a custom action based on a set of events
  *
@@ -7,6 +9,6 @@ package org.chiknrice.pipes.api;
  */
 public interface CustomAction<E> {
 
-    void perform(E... event);
+    void perform(Set<E> trigger);
 
 }

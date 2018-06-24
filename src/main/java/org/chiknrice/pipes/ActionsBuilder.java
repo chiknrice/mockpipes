@@ -2,6 +2,7 @@ package org.chiknrice.pipes;
 
 import org.chiknrice.pipes.api.*;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -43,7 +44,8 @@ class ActionsBuilder<I, O, E> implements ActionConfigurer<I, O, E>, EventActions
     @Override
     public EventActions<E> createInstance() {
         return (event, session) -> {
-            actions.forEach(action -> action.perform(session, event));
+            // this only applies to ConnectionEvent as it is overridden for MessageEvent
+            actions.forEach(action -> action.perform(session, Collections.singleton(event)));
             return true;
         };
     }

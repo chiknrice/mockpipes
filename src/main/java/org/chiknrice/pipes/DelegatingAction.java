@@ -3,6 +3,8 @@ package org.chiknrice.pipes;
 import org.apache.mina.core.session.IoSession;
 import org.chiknrice.pipes.api.CustomAction;
 
+import java.util.Set;
+
 class DelegatingAction<E> implements Action<E> {
 
     private final CustomAction<E> delegate;
@@ -12,7 +14,7 @@ class DelegatingAction<E> implements Action<E> {
     }
 
     @Override
-    public void perform(IoSession session, E... event) {
-        delegate.perform(event);
+    public void perform(IoSession session, Set<E> trigger) {
+        delegate.perform(trigger);
     }
 }

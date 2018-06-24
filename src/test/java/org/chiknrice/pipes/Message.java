@@ -1,6 +1,7 @@
 package org.chiknrice.pipes;
 
 import org.chiknrice.pipes.api.MessageBuilder;
+import org.chiknrice.pipes.api.MessageEvent;
 import org.chiknrice.pipes.api.MessageMatcher;
 
 import java.util.regex.Pattern;
@@ -11,8 +12,16 @@ public class Message {
         return named(message -> message.equals(string), string);
     }
 
+    static MessageMatcher<String> any() {
+        return s -> true;
+    }
+
     static <E> MessageBuilder<String, E> value(String string) {
         return trigger -> string;
+    }
+
+    static <M, E extends MessageEvent<M>> MessageBuilder<M, E> echo() {
+        return trigger -> trigger.stream().findFirst().orElseThrow(RuntimeException::new).getMessage();
     }
 
     static MessageMatcher<String> matchingRegex(String regexPattern) {
